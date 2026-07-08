@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strix - Midnight Shrike</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='16,2 30,16 16,30 2,16' fill='%237C3AED'/%3E%3Cpolygon points='16,7 25,16 16,25 7,16' fill='%2312121a'/%3E%3Cpolygon points='16,12 20,16 16,20 12,16' fill='%237C3AED'/%3E%3C/svg%3E">
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --bg-card: #12121a;
+            --bg-hover: #1a1a28;
+            --border: #1e1e30;
+            --text: #e0e0f0;
+            --text-dim: #8888a0;
+            --accent: #7C3AED;
+            --accent-glow: #7C3AED40;
+            --green: #10B981;
+            --yellow: #FBBF24;
+            --red: #EF4444;
+            --cyan: #22D3EE;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* ── Scanline overlay ── */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(255,255,255,0.015) 2px,
+                rgba(255,255,255,0.015) 4px
+            );
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+
+        /* ── Header ── */
+        header {
+            text-align: center;
+            padding: 4rem 0 3rem;
+            position: relative;
+        }
+
+        header::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .logo { font-size: 3.5rem; margin-bottom: 0.5rem; position: relative; }
+        .release-name {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent), var(--cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+        }
+        .tagline {
+            font-size: 1.1rem;
+            color: var(--text-dim);
+            margin-top: 0.5rem;
+            position: relative;
+        }
+
+        .badge {
+            display: inline-block;
+            background: var(--accent);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin: 0.25rem;
+        }
+
+        .badge.danger { background: var(--red); }
+        .badge.warning { background: var(--yellow); color: #000; }
+        .badge.info { background: var(--cyan); color: #000; }
+
+        /* ── Bento Grid ── */
+        .bento {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            border-color: var(--accent);
+            background: var(--bg-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(124, 58, 237, 0.15);
+        }
+
+        .card h3 {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--accent);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card p, .card li { color: var(--text-dim); font-size: 0.9rem; }
+        .card ul { list-style: none; padding: 0; }
+        .card li { padding: 0.25rem 0; padding-left: 1.2rem; position: relative; }
+        .card li::before { content: '›'; position: absolute; left: 0; color: var(--accent); font-weight: bold; }
+
+        /* Card spans */
+        .span-2 { grid-column: span 2; }
+        .span-3 { grid-column: span 3; }
+        .span-full { grid-column: 1 / -1; }
+
+        /* Feature icon row */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        .feature-item {
+            background: rgba(124, 58, 237, 0.08);
+            border: 1px solid rgba(124, 58, 237, 0.15);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .feature-item .icon { font-size: 1.5rem; display: block; margin-bottom: 0.4rem; }
+        .feature-item .label { font-size: 0.8rem; color: var(--text-dim); }
+
+        /* Stats row */
+        .stat-row {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+        }
+        .stat {
+            text-align: center;
+            min-width: 80px;
+        }
+        .stat .num {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .stat .desc {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* ── Latex-style section ── */
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 3rem 0 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section-title span { color: var(--accent); }
+
+        /* ── Instability / warning box ── */
+        .warning-box {
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .warning-box h4 { color: var(--red); margin-bottom: 0.5rem; }
+
+        .info-box {
+            background: rgba(34, 211, 238, 0.08);
+            border: 1px solid rgba(34, 211, 238, 0.2);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .info-box h4 { color: var(--cyan); margin-bottom: 0.5rem; }
+
+        /* ── Code block ── */
+        code {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 0.375rem;
+            padding: 0.15rem 0.4rem;
+            font-family: 'SF Mono', 'Cascadia Code', monospace;
+            font-size: 0.85em;
+            color: var(--yellow);
+        }
+
+        pre {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            overflow-x: auto;
+            margin: 0.75rem 0;
+            font-family: 'SF Mono', 'Cascadia Code', monospace;
+            font-size: 0.85rem;
+        }
+
+        pre code { background: none; border: none; padding: 0; }
+
+        /* ── System Requirements Table ── */
+        .req-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        .req-table th, .req-table td {
+            text-align: left;
+            padding: 0.6rem 0.8rem;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+        .req-table th {
+            color: var(--accent);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+        }
+        .req-table td { color: var(--text-dim); }
+        .req-table tr:hover td { color: var(--text); }
+
+        /* ── Footer ── */
+        footer {
+            text-align: center;
+            padding: 3rem 0;
+            border-top: 1px solid var(--border);
+            margin-top: 3rem;
+            color: var(--text-dim);
+            font-size: 0.85rem;
+        }
+
+        footer a { color: var(--accent); text-decoration: none; }
+        footer a:hover { text-decoration: underline; }
+
+        .psys {
+            margin-top: 1rem;
+            padding: 1rem;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+
+        .psys strong { color: var(--accent); }
+
+        /* ── Responsive ── */
+        @media (max-width: 900px) {
+            .bento { grid-template-columns: repeat(2, 1fr); }
+            .span-2, .span-3 { grid-column: span 2; }
+        }
+        @media (max-width: 600px) {
+            .bento { grid-template-columns: 1fr; }
+            .span-2, .span-3 { grid-column: 1; }
+            .release-name { font-size: 1.8rem; }
+            .container { padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- ═══ HEADER ═══ -->
+    <header>
+        <div class="logo">
+          <pre style="display:inline-block;font-family:'SF Mono','Cascadia Code',monospace;line-height:1.3;color:var(--accent);font-size:0.85rem;text-align:left;">  ╭──────╮
+  │ ◈    │
+  │ STRIX│
+  ╰──────╯</pre>
+        </div>
+        <div class="release-name">Midnight Shrike</div>
+        <div class="tagline">A terminal-based habit RPG that rewards balance, not streaks.</div>
+        <div style="margin-top: 0.75rem;">
+            <span class="badge warning">[!] Pre-release</span>
+            <span class="badge info">v0.1.0</span>
+            <span class="badge">CLI</span>
+            <span class="badge">TUI</span>
+            <a href="../launches/index.html" style="text-decoration:none;"><span class="badge" style="background:var(--text-dim);color:var(--bg);">[~] Launches</span></a>
+        </div>
+    </header>
+
+    <!-- ═══ BENTO GRID ═══ -->
+    <div class="bento">
+
+        <!-- What is Strix? -->
+        <div class="card span-2">
+            <h3>[?] What is Strix?</h3>
+            <p>Strix is a <strong>deterministic habit RPG</strong> that runs in your terminal. Every day is a fresh run. Complete tasks across 6 domains of life, build meaningful chains between related activities, and discover patterns you never noticed - all without a chatbot, without streaks pressure, and without friction.</p>
+            <p style="margin-top: 0.75rem;">Named after the genus of owls that includes the Tawny Owl - silent observers, keen-eyed, patient. Strix watches your habits and surfaces what matters.</p>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="card">
+            <h3>[#] At a Glance</h3>
+            <div class="stat-row">
+                <div class="stat">
+                    <div class="num">6</div>
+                    <div class="desc">Domains</div>
+                </div>
+                <div class="stat">
+                    <div class="num">42</div>
+                    <div class="desc">Templates</div>
+                </div>
+                <div class="stat">
+                    <div class="num">16</div>
+                    <div class="desc">Intents</div>
+                </div>
+                <div class="stat">
+                    <div class="num">1</div>
+                    <div class="desc">Binary</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Platforms -->
+        <div class="card">
+            <h3>[$] Platforms</h3>
+            <ul>
+                <li>[LIN] Linux (x86_64, arm64)</li>
+                <li>[MAC] macOS (Intel + Apple Silicon)</li>
+                <li>[WIN] Windows (x86_64)</li>
+                <li style="margin-top:0.5rem;color:var(--text)"><strong>One binary. Zero dependencies.</strong></li>
+            </ul>
+        </div>
+
+        <!-- Core Features -->
+        <div class="card span-2">
+            <h3>[+] Core Features</h3>
+            <div class="feature-grid">
+                <div class="feature-item">
+                    <span class="icon">◆</span>
+                    <span class="label">Domain Classification</span>
+                </div>
+                <div class="feature-item">
+                    <span class="icon">◈</span>
+                    <span class="label">Chain Building</span>
+                </div>
+                <div class="feature-item">
+                    <span class="icon">◉</span>
+                    <span class="label">Intelligent Companion</span>
+                </div>
+                <div class="feature-item">
+                    <span class="icon">◎</span>
+                    <span class="label">Rhythm Phases</span>
+                </div>
+                <div class="feature-item">
+                    <span class="icon">◇</span>
+                    <span class="label">Pattern Insights</span>
+                </div>
+                <div class="feature-item">
+                    <span class="icon">○</span>
+                    <span class="label">Thought Process</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Companion -->
+        <div class="card span-2">
+            <h3>[~] Intelligent Companion</h3>
+            <p>A <strong>deterministic</strong> in-app companion that observes silently, prompts sparingly, and reveals its thinking.</p>
+            <ul style="margin-top: 0.5rem;">
+                <li>16 intent types across 4 priority tiers</li>
+                <li>42 template variants - no two messages the same</li>
+                <li><code>[?]</code> expandable thought process shows every decision</li>
+                <li><code>[h]</code>/<code>[j]</code> training - rate messages as helpful or not</li>
+                <li>Optional <strong>LLM enrichment</strong> via local Ollama (disabled by default)</li>
+                <li>Configurable verbosity, intent subscriptions, and full disable</li>
+            </ul>
+        </div>
+
+        <!-- Domain System -->
+        <div class="card">
+            <h3>[*] 6 Domains</h3>
+            <ul>
+                <li>◆ <strong>Body</strong> - Exercise, nutrition, sleep</li>
+                <li>■ <strong>Learning</strong> - Reading, coding, skills</li>
+                <li>▲ <strong>Creative</strong> - Writing, art, design</li>
+                <li>● <strong>Career</strong> - Work, projects, goals</li>
+                <li>◗ <strong>Social</strong> - Connection, community</li>
+                <li>★ <strong>Recovery</strong> - Rest, mindfulness, self-care</li>
+            </ul>
+        </div>
+
+        <!-- Chains -->
+        <div class="card">
+            <h3>[=] Chain System</h3>
+            <p>Complete same-domain tasks close together to form <strong>chains</strong> and earn XP multipliers:</p>
+            <ul style="margin-top: 0.5rem;">
+                <li>2 tasks → 1.25× XP</li>
+                <li>3 tasks → 1.50× XP</li>
+                <li>4 tasks → 1.75× XP</li>
+                <li>5+ tasks → 2.00× XP (capped)</li>
+                <li style="margin-top:0.5rem;">Cross-domain chains unlock bonus names</li>
+            </ul>
+        </div>
+
+    </div><!-- /bento -->
+
+    <!-- ═══ FUNCTIONALITY ═══ -->
+    <h2 class="section-title"><span>[-]</span> Functionality</h2>
+
+    <div class="bento">
+        <div class="card span-3">
+            <h3>[>] How It Works</h3>
+            <p>Strix runs as an interactive <strong>TUI</strong> (Terminal User Interface) or via direct <strong>CLI commands</strong> from your shell.</p>
+            <pre><code># Interactive mode
+./strix
+
+# CLI commands
+strix add "Gym"           # Create a task
+strix done "Gym"          # Complete it
+strix today               # See today's progress
+strix review              # Weekly review + insights
+strix export              # Export data (JSON/CSV/MD)
+strix config set companion.verbosity concise</code></pre>
+            <p style="margin-top:0.5rem;">The companion observes your completions and surfaces milestones, neglected domains, streak celebrations, and time-of-day greetings - all deterministically, with visible reasoning.</p>
+        </div>
+
+        <div class="card">
+            <h3>[#] Architecture</h3>
+            <ul>
+                <li><strong>Go</strong> - Compiled to a single binary</li>
+                <li><strong>SQLite</strong> - Local, no server needed</li>
+                <li><strong>Bubble Tea</strong> - TUI framework</li>
+                <li><strong>Lip Gloss</strong> - Styling</li>
+                <li><strong>Ollama</strong> - Optional LLM enrichment (local only)</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- ═══ INSTABILITY ═══ -->
+    <h2 class="section-title"><span>[!]</span> Stability &amp; Known Issues</h2>
+
+    <div class="warning-box">
+        <h4>[!] Pre-Release Software</h4>
+        <p>Strix is in active development. The database schema, CLI interface, and companion behavior may change between releases. <strong>Data loss is possible</strong> on upgrade - always back up <code>~/.strix/strix.db</code> before updating.</p>
+    </div>
+
+    <div class="bento">
+        <div class="card">
+            <h3>[!] Known Limitations</h3>
+            <ul>
+                <li>Domain classification uses substring matching - some tasks may be misclassified (e.g., "Meditate" → Creative instead of Recovery)</li>
+                <li>Chain detection is order-dependent within a session</li>
+                <li>Cross-session state is not fully synced (companion resets on app close)</li>
+                <li>Pattern insights require 7+ days of data to be meaningful</li>
+                <li>Reminder system (scheduled reminders) is not yet wired to the trigger pipeline</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h3>[+] Coming Soon</h3>
+            <ul>
+                <li>Reminder scheduler (time-based + condition-based)</li>
+                <li>Cross-session companion persistence</li>
+                <li>Improved domain classification (embedding-based)</li>
+                <li>Config profiles (export/import settings)</li>
+                <li>Export formats: CSV, Markdown tables, JSON</li>
+            </ul>
+        </div>
+
+        <div class="card span-2">
+            <h3>[*] Testing Status</h3>
+            <div class="stat-row">
+                <div class="stat">
+                    <div class="num" style="color:var(--green)">88+</div>
+                    <div class="desc">Unit Tests</div>
+                </div>
+                <div class="stat">
+                    <div class="num" style="color:var(--green)">100%</div>
+                    <div class="desc">Build Pass</div>
+                </div>
+                <div class="stat">
+                    <div class="num" style="color:var(--yellow)">Partial</div>
+                    <div class="desc">Integration</div>
+                </div>
+                <div class="stat">
+                    <div class="num" style="color:var(--red)">None</div>
+                    <div class="desc">E2E Tests</div>
+                </div>
+            </div>
+            <p style="margin-top:0.75rem;color:var(--text-dim);font-size:0.85rem;">Core inference pipeline is unit-tested. No end-to-end or cross-session tests yet. Companion is tested offline (no DB dependency for inference).</p>
+        </div>
+    </div>
+
+    <!-- ═══ LLM ═══ -->
+    <h2 class="section-title"><span>[~]</span> LLM Enrichment</h2>
+
+    <div class="info-box">
+        <h4>[*] Optional - Disabled by Default</h4>
+        <p>Strix includes an <strong>optional</strong> LLM enrichment layer that rephrases companion messages using a local <strong>Ollama</strong> instance. The LLM is <strong>not bundled</strong> with the binary - you must run Ollama separately if you want enrichment.</p>
+        <p style="margin-top:0.5rem;">When disabled (default), the companion is fully deterministic: same inputs always produce the same output. When enabled, only 3 intent categories are enrichable: congratulations, observations, and reflections. Greetings, suggestions, and reminders are never sent to the LLM.</p>
+    </div>
+
+    <div class="bento">
+        <div class="card span-2">
+            <h3>[$] Enable LLM</h3>
+            <pre><code># Install Ollama (if not installed)
+curl -fsSL https://ollama.com/install.sh | sh
+ollama pull llama3.2:1b
+
+# Configure Strix
+strix config set llm.enabled true
+strix config set llm.model llama3.2:1b</code></pre>
+        </div>
+        <div class="card">
+            <h3>[#] Safety</h3>
+            <ul>
+                <li>LLM sees only the filled template</li>
+                <li>Structural integrity validation prevents hallucination</li>
+                <li>5-second timeout with graceful fallback</li>
+                <li>No data leaves your machine</li>
+                <li>All enrichment is local via Ollama API</li>
+            </ul>
+        </div>
+        <div class="card">
+            <h3>[*] Enrichable Intents</h3>
+            <ul>
+                <li>[✓] congratulate.*</li>
+                <li>[✓] observe.*</li>
+                <li>[✓] greeting.reflect</li>
+                <li>[–] Greetings</li>
+                <li>[–] Suggestions</li>
+                <li>[–] Reminders</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- ═══ SYSTEM REQUIREMENTS ═══ -->
+    <h2 class="section-title"><span>[$]</span> System Requirements</h2>
+
+    <div class="bento">
+        <div class="card span-full">
+            <table class="req-table">
+                <thead>
+                    <tr>
+                        <th>Requirement</th>
+                        <th>Minimum</th>
+                        <th>Recommended</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>OS</strong></td>
+                        <td>Linux kernel 4.15+ / macOS 12+ / Windows 10 1809+</td>
+                        <td>Linux 6.x / macOS 14+ / Windows 11</td>
+                        <td>NixOS, Alpine, WSL2 all supported</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Architecture</strong></td>
+                        <td>x86_64, arm64, armv7</td>
+                        <td>x86_64 or Apple Silicon</td>
+                        <td>AArch64 builds available</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Terminal</strong></td>
+                        <td>256-color capable</td>
+                        <td>TrueColor (24-bit) + Unicode</td>
+                        <td>Kitty, iTerm2, Windows Terminal, foot, alacritty</td>
+                    </tr>
+                    <tr>
+                        <td><strong>RAM</strong></td>
+                        <td>50 MB</td>
+                        <td>100 MB</td>
+                        <td>Go runtime + SQLite cache + TUI rendering</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Disk</strong></td>
+                        <td>25 MB</td>
+                        <td>100 MB</td>
+                        <td>~15 MB binary + SQLite DB (grows with use)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>LLM (Optional)</strong></td>
+                        <td>Ollama 0.3+ + 1 GB system RAM</td>
+                        <td>4 GB system RAM (for 7B models)</td>
+                        <td>Runs on CPU via Ollama. 1B models need ~1 GB, 7B models ~4 GB</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Dependencies</strong></td>
+                        <td colspan="2">None. Single static binary.</td>
+                        <td>No Python, Node, or Docker needed</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ═══ BUG REPORTS ═══ -->
+    <h2 class="section-title"><span>[!]</span> Bug Reports</h2>
+
+    <div class="bento">
+        <div class="card span-2">
+            <h3>[#] Report Format</h3>
+            <p>All bug reports must include the following sections. Reports that don't follow this format will be closed without review.</p>
+            <pre><code>## Environment
+- Strix version: [e.g. Midnight Shrike]
+- OS: [e.g. Linux 6.8.0, macOS 14.5]
+- Terminal: [e.g. Kitty 0.35, Windows Terminal 1.21]
+- Architecture: [e.g. x86_64, arm64]
+
+## Summary
+[One sentence describing the bug]
+
+## Steps to Reproduce
+1. [First step]
+2. [Second step]
+3. [Third step]
+
+## Expected Behavior
+[What should happen]
+
+## Actual Behavior
+[What actually happens - include error messages]
+
+## Screenshots / Logs
+[If applicable, paste terminal output or attach screenshots]
+
+## Database
+[Run: sqlite3 ~/.strix/strix.db ".dump" | head -50]
+[Or describe what data was present]
+
+## Additional Context
+[Any other relevant information]</code></pre>
+        </div>
+        <div class="card">
+            <h3>[+] Submission</h3>
+            <ul>
+                <li>Open a GitHub Issue with the format above</li>
+                <li>Label your issue: <code>bug</code>, <code>crash</code>, <code>data-loss</code>, or <code>regression</code></li>
+                <li>Include <code>midnight-shrike</code> in the title</li>
+                <li>Response time: 24-72 hours</li>
+                <li>Data-loss bugs: priority 1</li>
+                <li>Crash bugs: priority 2</li>
+                <li>Feature gaps: priority 3</li>
+            </ul>
+        </div>
+        <div class="card">
+            <h3>[✓] Before Filing</h3>
+            <ul>
+                <li>Check <code>~/.strix/strix.db</code> exists and has data</li>
+                <li>Run with <code>STRIX_DEBUG=1 ./strix</code> for verbose logs</li>
+                <li>Try <code>strix config list</code> to confirm settings</li>
+                <li>Search existing issues for duplicates</li>
+                <li>Reproduce with a fresh DB: <code>mv ~/.strix/strix.db{,.bak}</code></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- ═══ LICENSE ═══ -->
+    <h2 class="section-title"><span>[§]</span> License</h2>
+
+    <div class="warning-box" style="border-color:var(--accent);background:rgba(124,58,237,0.06);">
+        <h4 style="color:var(--accent);">[i] Free for Personal Use - Not for Commercial Use</h4>
+        <p style="margin-top:0.5rem;">Strix is provided free of charge for <strong>personal, non-commercial use only</strong>. Commercial use, including but not limited to using Strix in a business, organization, or revenue-generating context, is strictly prohibited without explicit written permission.</p>
+        <p style="margin-top:0.5rem;"><strong>This software is provided "as is," without warranty of any kind, express or implied.</strong> The authors are not liable for any damages, data loss, or other issues arising from the use of this software. Use at your own risk.</p>
+        <p style="margin-top:0.75rem; color: var(--text-dim); font-size:0.85rem;">This notice is persistent and non-revocable. It will always be displayed on application startup.</p>
+    </div>
+
+    <!-- ═══ FOOTER ═══ -->
+    <footer>
+        <p>Strix - <strong>Midnight Shrike</strong></p>
+        <p style="margin-top:0.25rem; font-size:0.8rem;">A terminal habit RPG. Deterministic. Local. Yours.</p>
+        <div class="psys">
+            Developed by <strong><a href="https://psys.dev" style="color:var(--accent);text-decoration:none;">psys.dev</a></strong>
+        </div>
+        <p style="margin-top:0.75rem; font-size:0.75rem; color:var(--text-dim);">
+            <a href="#">GitHub</a> &middot;
+            <a href="../launches/index.html">Releases</a> &middot;
+            <a href="#">Documentation</a> &middot;
+            <a href="#">Report a Bug</a>
+        </p>
+    </footer>
+
+</div>
+
+</body>
+</html>

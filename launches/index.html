@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Launches - Strix</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='16,2 30,16 16,30 2,16' fill='%237C3AED'/%3E%3Cpolygon points='16,7 25,16 16,25 7,16' fill='%2312121a'/%3E%3Cpolygon points='16,12 20,16 16,20 12,16' fill='%237C3AED'/%3E%3C/svg%3E">
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --bg-card: #12121a;
+            --bg-hover: #1a1a28;
+            --border: #1e1e30;
+            --text: #e0e0f0;
+            --text-dim: #8888a0;
+            --accent: #7C3AED;
+            --green: #10B981;
+            --yellow: #FBBF24;
+            --cyan: #22D3EE;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container { max-width: 900px; margin: 0 auto; padding: 2rem; }
+
+        header {
+            text-align: center;
+            padding: 3rem 0 2rem;
+        }
+
+        .back {
+            display: inline-block;
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+        }
+        .back:hover { color: var(--accent); }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent), var(--cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: var(--text-dim);
+            margin-top: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        /* ── Timeline ── */
+        .timeline {
+            position: relative;
+            margin: 3rem 0;
+            padding-left: 2rem;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0.5rem;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--border);
+        }
+
+        .release {
+            position: relative;
+            margin-bottom: 2.5rem;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .release:hover {
+            border-color: var(--accent);
+            background: var(--bg-hover);
+        }
+
+        .release::before {
+            content: '';
+            position: absolute;
+            left: -1.75rem;
+            top: 1.75rem;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--accent);
+            border: 2px solid var(--bg);
+        }
+
+        .release.current::before {
+            background: var(--green);
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+        }
+
+        .release.planned::before {
+            background: var(--text-dim);
+        }
+
+        .release .name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .release.current .name { color: var(--green); }
+        .release .date {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            margin-top: 0.2rem;
+        }
+
+        .release .tag {
+            display: inline-block;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            margin-top: 0.35rem;
+            font-weight: 600;
+        }
+
+        .tag.current { background: rgba(16,185,129,0.15); color: var(--green); }
+        .tag.archived { background: rgba(136,136,160,0.15); color: var(--text-dim); }
+        .tag.planned { background: rgba(34,211,238,0.15); color: var(--cyan); }
+
+        .release .desc {
+            margin-top: 0.75rem;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        .release ul {
+            list-style: none;
+            margin-top: 0.5rem;
+        }
+        .release li {
+            padding: 0.2rem 0;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            padding-left: 1.2rem;
+            position: relative;
+        }
+        .release li::before { content: '›'; position: absolute; left: 0; color: var(--accent); }
+
+        .download-btn {
+            display: inline-block;
+            margin-top: 0.75rem;
+            padding: 0.4rem 1rem;
+            background: var(--accent);
+            color: white;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: opacity 0.2s;
+        }
+        .download-btn:hover { opacity: 0.8; }
+
+        .archives {
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+        }
+        .archives a { color: var(--text-dim); text-decoration: none; }
+        .archives a:hover { color: var(--accent); }
+
+        /* ── Download Help ── */
+        .help-box {
+            background: rgba(34,211,238,0.06);
+            border: 1px solid rgba(34,211,238,0.15);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .help-box h3 { color: var(--cyan); font-size: 0.9rem; margin-bottom: 0.75rem; }
+
+        pre {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            font-family: 'SF Mono', 'Cascadia Code', monospace;
+            font-size: 0.8rem;
+            overflow-x: auto;
+            margin: 0.5rem 0;
+        }
+
+        /* ── Footer ── */
+        footer {
+            text-align: center;
+            padding: 3rem 0;
+            border-top: 1px solid var(--border);
+            margin-top: 2rem;
+        }
+
+        .psys {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+
+        .psys strong { color: var(--accent); }
+
+        @media (max-width: 600px) {
+            .container { padding: 1rem; }
+            h1 { font-size: 1.5rem; }
+            .timeline { padding-left: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <header>
+        <a class="back" href="../launch/index.html">← Back to Strix</a>
+        <h1>[~] Launches</h1>
+        <div class="subtitle">Every release of Strix, from the first prototype to the latest build.</div>
+    </header>
+
+    <!-- ═══ TIMELINE ═══ -->
+    <div class="timeline">
+
+        <div class="release current">
+            <div class="name">Midnight Shrike</div>
+            <div class="date">July 2026 - Current</div>
+            <span class="tag current">Latest</span>
+            <div class="desc">
+                The first public release. A fully functional habit RPG with the Intelligent Companion across all 4 phases.
+            </div>
+            <ul>
+                <li>Deterministic companion engine with 16 intents and 42 templates</li>
+                <li>6-domain classification with keyword-based clustering</li>
+                <li>Chain system with XP multipliers (1.25× – 2.00×)</li>
+                <li>Rhythm phases: Morning, Afternoon, Evening, Night</li>
+                <li>Pattern insights: follow patterns, time preferences, day preferences</li>
+                <li>Expandable thought process (<code>[?]</code> to show reasoning)</li>
+                <li>Optional LLM enrichment via local Ollama</li>
+                <li>User training: rate messages as helpful/unhelpful</li>
+                <li>Configurable verbosity, intent subscriptions, companion disable</li>
+                <li>CLI commands: add, done, skip, undo, stats, review, graph, export</li>
+                <li>Interactive TUI with full keyboard navigation</li>
+            </ul>
+            <div>
+                <a class="download-btn" href="https://github.com/psysdev/strix/releases/download/v0.1.0/strix">⬇ Download Midnight Shrike</a>
+                <div class="archives">
+                    <a href="https://github.com/psysdev/strix/releases/download/v0.1.0/strix">Linux x86_64</a> &middot;
+                    <a href="https://github.com/psysdev/strix/releases/download/v0.1.0/strix">Linux arm64</a> &middot;
+                    <a href="https://github.com/psysdev/strix/releases/download/v0.1.0/strix">macOS Intel</a> &middot;
+                    <a href="https://github.com/psysdev/strix/releases/download/v0.1.0/strix">macOS Apple Silicon</a> &middot;
+                    <a href="https://github.com/psysdev/strix/releases/download/v0.1.0/strix">Windows x86_64</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="release planned">
+            <div class="name">Barn Owl</div>
+            <div class="date">Planned - Q4 2026</div>
+            <span class="tag planned">Planned</span>
+            <div class="desc">
+                Cross-session persistence, reminder scheduler, embedding-based domain classification.
+            </div>
+            <ul>
+                <li>Time-based and condition-based reminders</li>
+                <li>Carry-over intentions across sessions</li>
+                <li>Improved domain classification (embedding-based)</li>
+                <li>Enhanced chain detection with multi-session tracking</li>
+                <li>Config profiles (export/import settings)</li>
+            </ul>
+        </div>
+
+        <div class="release planned">
+            <div class="name">Great Grey</div>
+            <div class="date">Planned - Q1 2027</div>
+            <span class="tag planned">Planned</span>
+            <div class="desc">
+                Cross-platform GUI mode, mobile companion view, API for integrations.
+            </div>
+            <ul>
+                <li>Web-based companion view (read-only)</li>
+                <li>Calendar integration (export to iCal)</li>
+                <li>GitHub/GitLab integration for dev workflows</li>
+                <li>Plugin system for custom domains and scoring</li>
+            </ul>
+        </div>
+
+    </div>
+
+    <!-- ═══ DOWNLOAD HELP ═══ -->
+    <div class="help-box">
+        <h3>[↓] How to Install</h3>
+        <p style="font-size:0.85rem;color:var(--text-dim);">Download the binary for your platform, make it executable, and run it.</p>
+        <pre><code># Linux / macOS
+chmod +x strix-linux-x86_64
+./strix-linux-x86_64
+
+# Or rename and add to PATH
+mv strix-linux-x86_64 strix
+sudo mv strix /usr/local/bin/
+
+# Windows
+# Rename strix-windows-x86_64.exe to strix.exe and run in Terminal</code></pre>
+        <p style="margin-top:0.5rem;font-size:0.8rem;color:var(--text-dim);">No dependencies required. First run creates <code>~/.strix/strix.db</code> automatically.</p>
+    </div>
+
+    <!-- ═══ LICENSE ═══ -->
+    <div style="background:rgba(124,58,237,0.06);border:1px solid rgba(124,58,237,0.2);border-radius:1rem;padding:1.5rem;margin:2rem 0;">
+        <p style="font-size:0.8rem;color:var(--text-dim);">
+            <strong style="color:var(--accent);">License:</strong> Free for personal use. Not for commercial use. No warranties. 
+            Use at your own risk. See <a href="../LICENSE" style="color:var(--accent);">LICENSE</a> for full terms.
+        </p>
+    </div>
+
+    <footer>
+        <div class="psys">
+            Developed by <strong><a href="https://psys.dev" style="color:var(--accent);text-decoration:none;">psys.dev</a></strong>
+        </div>
+        <p style="margin-top:1rem;font-size:0.75rem;color:var(--text-dim);">
+            <a href="../launch/index.html" style="color:var(--accent);text-decoration:none;">Launch Page</a>
+        </p>
+    </footer>
+
+</div>
+
+</body>
+</html>
